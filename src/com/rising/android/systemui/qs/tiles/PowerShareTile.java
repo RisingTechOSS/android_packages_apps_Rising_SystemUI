@@ -50,6 +50,8 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
     public static final String TILE_SPEC = "powershare";
 
     private IPowerShare mPowerShare;
+    private static IPowerShare powerShareService;
+    private static final Object powerShareLock = new Object();
     private Lazy<CentralSurfaces> mCentralSurfacesLazy;
     private AmbientIndicationContainer mAmbientContainer;
     private BatteryController mBatteryController;
@@ -228,16 +230,25 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
     public void handleSetListening(boolean listening) {
     }
 
-    private synchronized IPowerShare getPowerShare() {
-        try {
-            return IPowerShare.getService();
-        } catch (RemoteException ex) {
-            ex.printStackTrace();
-        } catch (NoSuchElementException ex) {
-            // service not available
+    private IPowerShare getPowerShare() {
+        if (powerShareService != null) {
+            return powerShareService;
         }
 
-        return null;
+        synchronized (powerShareLock) {
+            if (powerShareService == null) {
+                try {
+                    powerShareService = IPowerShare.getService();
+                    return powerShareService;
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                } catch (NoSuchElementException ex) {
+                    // service not available
+                }
+            }
+
+            return null;
+        }
     }
 
     private int getMinBatteryLevel() {
