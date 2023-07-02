@@ -14,7 +14,6 @@ import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.service.quicksettings.Tile;
 import android.view.View;
 
@@ -39,7 +38,7 @@ import com.rising.android.systemui.ambient.AmbientIndicationContainer;
 
 import dagger.Lazy;
 
-import vendor.lineage.powershare.IPowerShare;
+import vendor.lineage.powershare.V1_0.IPowerShare;
 
 import java.util.NoSuchElementException;
 
@@ -58,8 +57,6 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
     private Notification mNotification;
     private static final String CHANNEL_ID = "powershare";
     private static final int NOTIFICATION_ID = 273298;
-
-    private static final String POWERSHARE_SERVICE_NAME = "vendor.lineage.powershare.IPowerShare/default";
 
     @Inject
     public PowerShareTile(
@@ -233,7 +230,9 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
 
     private synchronized IPowerShare getPowerShare() {
         try {
-            return IPowerShare.Stub.asInterface(ServiceManager.getService(POWERSHARE_SERVICE_NAME));
+            return IPowerShare.getService();
+        } catch (RemoteException ex) {
+            ex.printStackTrace();
         } catch (NoSuchElementException ex) {
             // service not available
         }
