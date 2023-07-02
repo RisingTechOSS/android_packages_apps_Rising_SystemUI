@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package com.statix.android.systemui.elmyra.proto;
+package com.rising.android.systemui.elmyra.proto;
 
 option java_outer_classname = "ContextHubMessages";
-option java_package = "com.statix.android.systemui.elmyra.proto";
+option java_package = "com.rising.android.systemui.elmyra.proto";
 
 message RecognizerStart {
     // Minimum gesture progress threshold for reporting events to AP

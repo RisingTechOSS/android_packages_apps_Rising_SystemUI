@@ -4,13 +4,13 @@
 //
 
 package {
-    default_applicable_licenses: ["packages_apps_Statix_SystemUI_license"],
+    default_applicable_licenses: ["packages_apps_Rising_SystemUI_license"],
 }
 
 // Added automatically by a large-scale-change
 // See: http://go/android-license-faq
 license {
-    name: "packages_apps_Statix_SystemUI_license",
+    name: "packages_apps_Rising_SystemUI_license",
     visibility: [":__subpackages__"],
     license_kinds: [
         "SPDX-license-identifier-Apache-2.0",
@@ -21,7 +21,7 @@ license {
 }
 
 android_library {
-    name: "StatixSystemUI-res",
+    name: "RisingSystemUI-res",
     manifest: "AndroidManifest.xml",
     resource_dirs: [
         "res",
@@ -32,7 +32,7 @@ android_library {
 }
 
 android_library {
-    name: "StatixSystemUI-core",
+    name: "RisingSystemUI-core",
     srcs: [
         "src/**/*.kt",
         "src/**/*.java",
@@ -43,7 +43,7 @@ android_library {
         "elmyra-messages-java",
         "elmyra-sysui-shared",
         "monet",
-        "StatixSystemUI-res",
+        "RisingSystemUI-res",
         "SystemUI-core",
         "vendor.lineage.powershare-V1-java",
         "//hardware/google/interfaces:com.google.hardware.pixel.display-V3-java",
@@ -57,10 +57,10 @@ android_library {
 }
 
 android_app {
-    name: "StatixSystemUI",
+    name: "RisingSystemUI",
     defaults: ["platform_app_defaults"],
     static_libs: [
-        "StatixSystemUI-core",
+        "RisingSystemUI-core",
     ],
     use_embedded_native_libs: true,
     platform_apis: true,

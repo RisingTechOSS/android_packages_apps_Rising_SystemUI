@@ -1,7 +1,7 @@
 -include ../../../../frameworks/base/packages/SystemUI/proguard.flags
 
 # Custom rules
--keep class com.statix.** { *; }
+-keep class com.rising.** { *; }
 
 # Custom rules
 -keep class vendor.** { *; }

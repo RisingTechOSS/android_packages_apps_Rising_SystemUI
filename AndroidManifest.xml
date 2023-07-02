@@ -33,7 +33,7 @@
         android:appComponentFactory=".SystemUIAppComponentFactory">
 
         <!-- Smart Pixels -->
-        <service android:name="com.statix.android.systemui.smartpixels.SmartPixelsService"
+        <service android:name="com.rising.android.systemui.smartpixels.SmartPixelsService"
             android:exported="true"
             android:enabled="true" />
 
