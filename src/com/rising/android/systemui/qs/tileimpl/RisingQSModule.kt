@@ -18,11 +18,7 @@ package com.rising.android.systemui.qs.tileimpl
 
 import com.android.systemui.qs.tileimpl.QSTileImpl
 
-import com.rising.android.systemui.qs.tiles.BluetoothDialogTile
-import com.rising.android.systemui.qs.tiles.CaffeineTile
 import com.rising.android.systemui.qs.tiles.DataSwitchTile
-import com.rising.android.systemui.qs.tiles.FlashlightStrengthTile
-import com.rising.android.systemui.qs.tiles.GloveModeTile
 import com.rising.android.systemui.qs.tiles.PowerShareTile
 import com.rising.android.systemui.qs.tiles.SmartPixelsTile
 import dagger.Binds
@@ -33,36 +29,11 @@ import dagger.multibindings.StringKey
 @Module
 interface RisingQSModule {
 
-    /** Inject BluetoothDialogTile into tileMap in QSModule */
-    @Binds
-    @IntoMap
-    @StringKey(BluetoothDialogTile.TILE_SPEC)
-    fun bindBluetoothDialogTile(bluetoothDialogTile: BluetoothDialogTile): QSTileImpl<*>
-
-    /** Inject CaffeineTile into tileMap in QSModule */
-    @Binds
-    @IntoMap
-    @StringKey(CaffeineTile.TILE_SPEC)
-    fun bindCaffeineTile(caffeineTile: CaffeineTile): QSTileImpl<*>
-
     /** Inject DataSwitchTile into tileMap in QSModule */
     @Binds
     @IntoMap
     @StringKey(DataSwitchTile.TILE_SPEC)
     fun bindDataSwitchTile(dataSwitchTile: DataSwitchTile): QSTileImpl<*>
-
-    /** Inject FlashlightStrengthTile into tileMap in QSModule */
-    @Binds
-    @IntoMap
-    @StringKey(FlashlightStrengthTile.TILE_SPEC)
-    fun bindFlashlightStrengthTile(flashlightStrengthTile: FlashlightStrengthTile): QSTileImpl<*>
-
-    /** Inject GloveModeTile into tileMap in QSModule */
-    @Binds
-    @IntoMap
-    @StringKey(GloveModeTile.TILE_SPEC)
-    fun bindGloveModeTile(gloveModeTile: GloveModeTile): QSTileImpl<*>
-
 
     /** Inject PowerShareTile into tileMap in QSModule */
     @Binds

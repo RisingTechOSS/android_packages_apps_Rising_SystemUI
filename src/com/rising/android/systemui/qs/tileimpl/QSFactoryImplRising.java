@@ -40,8 +40,6 @@ import dagger.Lazy;
 @SysUISingleton
 public class QSFactoryImplRising extends QSFactoryImpl {
 
-    private static final String[] SLIDER_TILES = { "flashlight" };
-
     @Inject
     public QSFactoryImplRising(
             Lazy<QSHost> qsHostLazy,
@@ -53,10 +51,6 @@ public class QSFactoryImplRising extends QSFactoryImpl {
     @Override
     public QSTileView createTileView(Context context, QSTile tile, boolean collapsedView) {
         QSIconView icon = tile.createTileView(context);
-        if (Arrays.asList(SLIDER_TILES).contains(tile.getTileSpec())) {
-            TouchableQSTile touchableTile = (TouchableQSTile) tile;
-            return new SliderQSTileViewImpl(context, icon, collapsedView, touchableTile.getTouchListener(), touchableTile.getSettingsSystemKey());
-        }
         return new QSTileViewImpl(context, icon, collapsedView);
     }
 }
