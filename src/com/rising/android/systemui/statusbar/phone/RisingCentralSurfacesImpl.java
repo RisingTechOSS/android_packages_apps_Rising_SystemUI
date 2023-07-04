@@ -37,6 +37,7 @@ import com.android.systemui.keyguard.ScreenLifecycle;
 import com.android.systemui.keyguard.WakefulnessLifecycle;
 import com.android.systemui.keyguard.domain.interactor.AlternateBouncerInteractor;
 import com.android.systemui.keyguard.ui.viewmodel.LightRevealScrimViewModel;
+import com.android.systemui.model.SysUiState;
 import com.android.systemui.navigationbar.NavigationBarController;
 import com.android.systemui.plugins.FalsingManager;
 import com.android.systemui.plugins.PluginDependencyProvider;
@@ -84,6 +85,7 @@ import com.android.systemui.statusbar.phone.StatusBarTouchableRegionManager;
 import com.android.systemui.statusbar.phone.dagger.CentralSurfacesComponent;
 import com.android.systemui.statusbar.phone.ongoingcall.OngoingCallController;
 import com.android.systemui.statusbar.policy.BatteryController;
+import com.android.systemui.statusbar.policy.BurnInProtectionController;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
 import com.android.systemui.statusbar.policy.ExtensionController;
@@ -92,6 +94,7 @@ import com.android.systemui.statusbar.policy.UserInfoControllerImpl;
 import com.android.systemui.statusbar.policy.UserSwitcherController;
 import com.android.systemui.statusbar.window.StatusBarWindowController;
 import com.android.systemui.statusbar.window.StatusBarWindowStateController;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.WallpaperController;
 import com.android.systemui.util.concurrency.DelayableExecutor;
 import com.android.systemui.util.concurrency.MessageRouter;
@@ -207,7 +210,10 @@ public class RisingCentralSurfacesImpl extends CentralSurfacesImpl {
             Lazy<LightRevealScrimViewModel> lightRevealScrimViewModelLazy,
             AlternateBouncerInteractor alternateBouncerInteractor,
             UserTracker userTracker,
-            Provider<FingerprintManager> fingerprintManagerProvider) {
+            Provider<FingerprintManager> fingerprintManagerProvider,
+            TunerService tunerService,
+            SysUiState sysUiState,
+            BurnInProtectionController burnInProtectionController) {
         super(context, notificationsController, fragmentService, lightBarController, autoHideController,
             statusBarWindowController, statusBarWindowStateController, keyguardUpdateMonitor, statusBarSignalPolicy,
             pulseExpansionHandler, notificationWakeUpCoordinator, keyguardBypassController, keyguardStateController,
@@ -228,7 +234,8 @@ public class RisingCentralSurfacesImpl extends CentralSurfacesImpl {
             statusBarHideIconsForBouncerManager, lockscreenShadeTransitionController, featureFlags, keyguardUnlockAnimationController,
             delayableExecutor, messageRouter, wallpaperManager, startingSurfaceOptional, activityLaunchAnimator,
             jankMonitor, deviceStateManager, wiredChargingRippleController, dreamManager, cameraLauncherLazy, lightRevealScrimViewModelLazy,
-            alternateBouncerInteractor, userTracker, fingerprintManagerProvider);
+            alternateBouncerInteractor, userTracker, fingerprintManagerProvider,
+            tunerService, sysUiState, burnInProtectionController);
     }
 
 }
