@@ -24,6 +24,7 @@ import com.android.systemui.statusbar.policy.ConfigurationController.Configurati
 import com.android.systemui.statusbar.policy.DeviceProvisionedController
 import com.android.systemui.theme.ThemeOverlayApplier
 import com.android.systemui.theme.ThemeOverlayController
+import com.android.systemui.util.settings.SystemSettings
 import com.android.systemui.util.settings.SecureSettings
 
 import java.util.concurrent.Executor
@@ -38,15 +39,16 @@ class ThemeOverlayControllerRising @Inject constructor(
     @Background bgExecutor: Executor,
     themeOverlayApplier: ThemeOverlayApplier,
     secureSettings: SecureSettings,
+    systemSettings: SystemSettings,
     wallpaperManager: WallpaperManager,
     userManager: UserManager,
+    private val configurationController: ConfigurationController,
     deviceProvisionedController: DeviceProvisionedController,
     userTracker: UserTracker,
     dumpManager: DumpManager,
     featureFlags: FeatureFlags,
     @Main resources: Resources,
     wakefulnessLifecycle: WakefulnessLifecycle,
-    private val configurationController: ConfigurationController,
 ) : ThemeOverlayController(
     context,
     broadcastDispatcher,
@@ -55,14 +57,16 @@ class ThemeOverlayControllerRising @Inject constructor(
     bgExecutor,
     themeOverlayApplier,
     secureSettings,
+    systemSettings,
     wallpaperManager,
     userManager,
+    configurationController,
     deviceProvisionedController,
     userTracker,
     dumpManager,
     featureFlags,
     resources,
-    wakefulnessLifecycle,
+    wakefulnessLifecycle
 ) {
 
     private val darkConfigurationListener = object : ConfigurationListener {
