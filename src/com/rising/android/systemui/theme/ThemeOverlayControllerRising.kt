@@ -26,6 +26,7 @@ import com.android.systemui.theme.ThemeOverlayApplier
 import com.android.systemui.theme.ThemeOverlayController
 import com.android.systemui.util.settings.SystemSettings
 import com.android.systemui.util.settings.SecureSettings
+import com.android.systemui.tuner.TunerService
 
 import java.util.concurrent.Executor
 
@@ -49,6 +50,7 @@ class ThemeOverlayControllerRising @Inject constructor(
     featureFlags: FeatureFlags,
     @Main resources: Resources,
     wakefulnessLifecycle: WakefulnessLifecycle,
+    tunerService: TunerService
 ) : ThemeOverlayController(
     context,
     broadcastDispatcher,
@@ -66,7 +68,8 @@ class ThemeOverlayControllerRising @Inject constructor(
     dumpManager,
     featureFlags,
     resources,
-    wakefulnessLifecycle
+    wakefulnessLifecycle,
+    tunerService
 ) {
 
     private val darkConfigurationListener = object : ConfigurationListener {
