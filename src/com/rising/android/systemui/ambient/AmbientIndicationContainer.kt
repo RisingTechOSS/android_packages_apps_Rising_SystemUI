@@ -130,30 +130,30 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
         var updatePill = true
         indicationTextMode = 1
         var text = ambientMusicText
-        val textVisible = textView.visibility == View.VISIBLE
+        val textVisible = textView?.visibility == View.VISIBLE
         var icon: Drawable? = if (textVisible) { ambientMusicNoteIcon } else { ambientMusicAnimation }
         if (ambientIconOverride != null) {
             icon = ambientIconOverride
         }
         var showAmbientMusicText = ambientMusicText != null && ambientMusicText!!.length == 0
-        textView.setClickable(openIntent != null)
-        iconView.setClickable(favoritingIntent != null || openIntent != null)
+        textView?.setClickable(openIntent != null)
+        iconView?.setClickable(favoritingIntent != null || openIntent != null)
         var iconDescription = if (TextUtils.isEmpty(iconDescription)) { text } else { this.iconDescription }
         if (!TextUtils.isEmpty(reverseChargingMessage)) {
             indicationTextMode = 2
             text = reverseChargingMessage
             icon = null
-            textView.setClickable(false)
-            iconView.setClickable(false)
+            textView?.setClickable(false)
+            iconView?.setClickable(false)
             showAmbientMusicText = false
             iconDescription = null
         }
-        textView.text = text
-        textView.setContentDescription(text)
-        iconView.setContentDescription(iconDescription)
+        textView?.text = text
+        textView?.setContentDescription(text)
+        iconView?.setContentDescription(iconDescription)
         var drawableWrapper: Drawable? = null
         if (icon != null) {
-            iconBounds.set(0, 0, icon.getIntrinsicWidth(), icon.getIntrinsicHeight())
+            iconBounds.set(0, 0, icon.intrinsicWidth, icon.intrinsicHeight)
             MathUtils.fitRect(iconBounds, if (icon == ambientMusicNoteIcon) { ambientMusicNoteIconSize } else { ambientIndicationIconSize })
             drawableWrapper = object : DrawableWrapper(icon) {
                 override fun getIntrinsicWidth(): Int {
@@ -164,24 +164,24 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
                     return iconBounds.height()
                 }
             }
-            val endPadding: Int = if (!TextUtils.isEmpty(text)) { (getResources().getDisplayMetrics().density * 24).toInt() } else { 0 }
-            textView.setPaddingRelative(textView.getPaddingStart(), textView.getPaddingTop(), endPadding, textView.getPaddingBottom())
+            val endPadding: Int = if (!TextUtils.isEmpty(text)) { (resources.displayMetrics.density * 24).toInt() } else { 0 }
+            textView?.setPaddingRelative(textView?.paddingStart ?: 0, textView?.paddingTop ?: 0, endPadding, textView?.paddingBottom ?: 0)
         } else {
-            textView.setPaddingRelative(textView.getPaddingStart(), textView.getPaddingTop(), 0, textView.getPaddingBottom())
+            textView?.setPaddingRelative(textView?.paddingStart ?: 0, textView?.paddingTop ?: 0, 0, textView?.paddingBottom ?: 0)
         }
-        iconView.setImageDrawable(drawableWrapper)
+        iconView?.setImageDrawable(drawableWrapper)
         if ((TextUtils.isEmpty(text) && !showAmbientMusicText)) {
             updatePill = false
         }
         val vis = if (updatePill) { View.VISIBLE } else { View.GONE }
-        textView.setVisibility(vis)
+        textView?.setVisibility(vis)
         if (icon == null) {
-            iconView.visibility = View.GONE
+            iconView?.visibility = View.GONE
         } else {
-            iconView.visibility = vis
+            iconView?.visibility = vis
         }
         if (!updatePill) {
-            textView.animate().cancel()
+            textView?.animate()?.cancel()
             if (icon is AnimatedVectorDrawable) {
                 icon.reset()
             }
@@ -191,14 +191,14 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
             if (icon is AnimatedVectorDrawable) {
                 icon.start()
             }
-            textView.setTranslationY((textView.getHeight().toFloat()) / 2F)
-            textView.setAlpha(0.0f)
-            textView.animate().alpha(1.0f).translationY(0.0f).setStartDelay(150L).setDuration(100L).setListener(object: AnimatorListenerAdapter() {
+            textView?.translationY = (textView?.height?.toFloat() ?: 0F) / 2F
+            textView?.alpha = 0.0f
+            textView?.animate()?.alpha(1.0f)?.translationY(0.0f)?.setStartDelay(150L)?.setDuration(100L)?.setListener(object: AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animator: Animator) {
                     wakeLock.release("AmbientIndication")
-                    textView.animate().setListener(null)
+                    textView?.animate()?.setListener(null)
                 }
-            }).setInterpolator(Interpolators.DECELERATE_QUINT).start()
+            })?.setInterpolator(Interpolators.DECELERATE_QUINT)?.start()
         } else if (oldIndicationTextMode != this.indicationTextMode) {
             if (icon is AnimatedVectorDrawable) {
                 wakeLock.acquire("AmbientIndication")
