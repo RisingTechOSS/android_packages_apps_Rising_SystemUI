@@ -17,8 +17,8 @@ import android.os.PowerManager
 import android.os.SystemClock
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.MathUtils
 import android.util.Log
+import android.util.MathUtils
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -35,11 +35,15 @@ import com.android.systemui.statusbar.phone.CentralSurfaces
 import com.android.systemui.util.wakelock.DelayedWakeLock
 import com.android.systemui.util.wakelock.WakeLock
 
-class AmbientIndicationContainer(private val context: Context, attrs: AttributeSet) : AutoReinflateContainer(context, attrs), DozeReceiver, StatusBarStateController.StateListener, NotificationMediaManager.MediaListener {
+class AmbientIndicationContainer(
+    private val context: Context,
+    attrs: AttributeSet
+) : AutoReinflateContainer(context, attrs), DozeReceiver, StatusBarStateController.StateListener, NotificationMediaManager.MediaListener {
 
-    private val handler: Handler = Handler(Looper.getMainLooper())
-    private val iconBounds: Rect = Rect()
-    private val wakeLock: WakeLock = DelayedWakeLock(handler, WakeLock.createPartial(context, "AmbientIndication"))
+    private val iconBounds = Rect()
+    private val wakeLock: WakeLock by lazy {
+        DelayedWakeLock(Handler(Looper.getMainLooper()), WakeLock.createPartial(context, "AmbientIndication"))
+    }
     private var ambientIconOverride: Drawable? = null
     private var ambientIndicationIconSize: Int = 0
     private lateinit var ambientMusicAnimation: Drawable
@@ -63,56 +67,68 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
     private lateinit var textView: TextView
     private var reverseChargingMessage: String = ""
 
-    public fun initializeView(centralSurfaces: CentralSurfaces) {
+    private val handler: Handler = Handler(Looper.getMainLooper())
+
+    fun initializeView(centralSurfaces: CentralSurfaces) {
         this.centralSurfaces = centralSurfaces
         addInflateListener(object : AutoReinflateContainer.InflateListener {
             override fun onInflated(view: View) {
-                textView = findViewById<TextView>(R.id.ambient_indication_text)
-                iconView = findViewById<ImageView>(R.id.ambient_indication_icon)
-                ambientMusicAnimation = context.getDrawable(R.anim.audioanim_animation)
-                ambientMusicNoteIcon = context.getDrawable(R.drawable.ic_music_note)
+                textView = findViewById(R.id.ambient_indication_text)
+                iconView = findViewById(R.id.ambient_indication_icon)
+                ambientMusicAnimation = context.getDrawable(R.anim.audioanim_animation)!!
+                ambientMusicNoteIcon = context.getDrawable(R.drawable.ic_music_note)!!
                 textColor = textView.currentTextColor
                 ambientIndicationIconSize = resources.getDimensionPixelSize(R.dimen.ambient_indication_icon_size)
                 ambientMusicNoteIconSize = resources.getDimensionPixelSize(R.dimen.ambient_indication_note_icon_size)
-                textView.setEnabled(!dozing)
+                textView.isEnabled = !dozing
                 updateColors()
                 updatePill()
-                textView.setOnClickListener({v -> onTextClick(v)})
-                iconView.setOnClickListener({v -> onIconClick(v)})
+                textView.setOnClickListener { v -> onTextClick(v) }
+                iconView.setOnClickListener { v -> onIconClick(v) }
             }
         })
-        addOnLayoutChangeListener({
-            _, _, _, _, _, _, _, _, _ -> updateBottomSpacing()
-        })
+        addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            updateBottomSpacing()
+        }
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        (Dependency.get(StatusBarStateController::class.java) as StatusBarStateController).addCallback(this)
-        (Dependency.get(NotificationMediaManager::class.java) as NotificationMediaManager).addCallback(this)
+        Dependency.get(StatusBarStateController::class.java).addCallback(this)
+        Dependency.get(NotificationMediaManager::class.java).addCallback(this)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        (Dependency.get(StatusBarStateController::class.java) as StatusBarStateController).removeCallback(this)
-        (Dependency.get(NotificationMediaManager::class.java) as NotificationMediaManager).removeCallback(this)
+        Dependency.get(StatusBarStateController::class.java).removeCallback(this)
+        Dependency.get(NotificationMediaManager::class.java).removeCallback(this)
     }
 
-    fun setAmbientMusic(text: String?, openIntent: PendingIntent?, favoriteIntent: PendingIntent?, skipUnlock: Boolean, iconOverride: Int, iconDescription: String?) {
-        if (this.ambientMusicText != text || this.openIntent != openIntent || this.favoritingIntent != favoriteIntent || this.iconOverride != iconOverride || this.ambientSkipUnlock != skipUnlock || this.iconDescription != iconDescription) {
-            this.ambientMusicText = text
+    fun setAmbientMusic(
+        text: String?,
+        openIntent: PendingIntent?,
+        favoriteIntent: PendingIntent?,
+        skipUnlock: Boolean,
+        iconOverride: Int,
+        iconDescription: String?
+    ) {
+        if (ambientMusicText != text || this.openIntent != openIntent ||
+            favoritingIntent != favoriteIntent || this.iconOverride != iconOverride ||
+            ambientSkipUnlock != skipUnlock || this.iconDescription != iconDescription
+        ) {
+            ambientMusicText = text
             this.openIntent = openIntent
-            this.favoritingIntent = favoriteIntent
-            this.ambientSkipUnlock = skipUnlock
+            favoritingIntent = favoriteIntent
+            ambientSkipUnlock = skipUnlock
             this.iconOverride = iconOverride
             this.iconDescription = iconDescription
-            this.ambientIconOverride = getAmbientIconOverride(iconOverride)
+            ambientIconOverride = getAmbientIconOverride(iconOverride)
             updatePill()
         }
     }
 
     private fun getAmbientIconOverride(iconOverride: Int): Drawable? {
-        return when(iconOverride) {
+        return when (iconOverride) {
             1 -> context.getDrawable(R.drawable.ic_music_search)
             2 -> null
             3 -> context.getDrawable(R.drawable.ic_music_not_found)
@@ -126,35 +142,38 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
     }
 
     private fun updatePill() {
+        if (textView == null || iconView == null) {
+            return
+        }
         val oldIndicationTextMode = indicationTextMode
         var updatePill = true
         indicationTextMode = 1
         var text = ambientMusicText
-        val textVisible = textView?.visibility == View.VISIBLE
-        var icon: Drawable? = if (textVisible) { ambientMusicNoteIcon } else { ambientMusicAnimation }
+        val textVisible = textView.visibility == View.VISIBLE
+        var icon: Drawable? = if (textVisible) ambientMusicNoteIcon else ambientMusicAnimation
         if (ambientIconOverride != null) {
             icon = ambientIconOverride
         }
-        var showAmbientMusicText = ambientMusicText != null && ambientMusicText!!.length == 0
-        textView?.setClickable(openIntent != null)
-        iconView?.setClickable(favoritingIntent != null || openIntent != null)
-        var iconDescription = if (TextUtils.isEmpty(iconDescription)) { text } else { this.iconDescription }
+        var showAmbientMusicText = ambientMusicText != null && ambientMusicText!!.isEmpty()
+        textView.isClickable = openIntent != null
+        iconView.isClickable = favoritingIntent != null || openIntent != null
+        var iconDescription = if (TextUtils.isEmpty(iconDescription)) text else this.iconDescription
         if (!TextUtils.isEmpty(reverseChargingMessage)) {
             indicationTextMode = 2
             text = reverseChargingMessage
             icon = null
-            textView?.setClickable(false)
-            iconView?.setClickable(false)
+            textView.isClickable = false
+            iconView.isClickable = false
             showAmbientMusicText = false
             iconDescription = null
         }
-        textView?.text = text
-        textView?.setContentDescription(text)
-        iconView?.setContentDescription(iconDescription)
+        textView.text = text
+        textView.contentDescription = text
+        iconView.contentDescription = iconDescription
         var drawableWrapper: Drawable? = null
         if (icon != null) {
             iconBounds.set(0, 0, icon.intrinsicWidth, icon.intrinsicHeight)
-            MathUtils.fitRect(iconBounds, if (icon == ambientMusicNoteIcon) { ambientMusicNoteIconSize } else { ambientIndicationIconSize })
+            MathUtils.fitRect(iconBounds, if (icon == ambientMusicNoteIcon) ambientMusicNoteIconSize else ambientIndicationIconSize)
             drawableWrapper = object : DrawableWrapper(icon) {
                 override fun getIntrinsicWidth(): Int {
                     return iconBounds.width()
@@ -164,41 +183,49 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
                     return iconBounds.height()
                 }
             }
-            val endPadding: Int = if (!TextUtils.isEmpty(text)) { (resources.displayMetrics.density * 24).toInt() } else { 0 }
-            textView?.setPaddingRelative(textView?.paddingStart ?: 0, textView?.paddingTop ?: 0, endPadding, textView?.paddingBottom ?: 0)
+            val endPadding: Int = if (!TextUtils.isEmpty(text)) (resources.displayMetrics.density * 24).toInt() else 0
+            textView.setPaddingRelative(
+                textView.paddingStart,
+                textView.paddingTop,
+                endPadding,
+                textView.paddingBottom
+            )
         } else {
-            textView?.setPaddingRelative(textView?.paddingStart ?: 0, textView?.paddingTop ?: 0, 0, textView?.paddingBottom ?: 0)
+            textView.setPaddingRelative(textView.paddingStart, textView.paddingTop, 0, textView.paddingBottom)
         }
-        iconView?.setImageDrawable(drawableWrapper)
-        if ((TextUtils.isEmpty(text) && !showAmbientMusicText)) {
+        iconView.setImageDrawable(drawableWrapper)
+        if (TextUtils.isEmpty(text) && !showAmbientMusicText) {
             updatePill = false
         }
-        val vis = if (updatePill) { View.VISIBLE } else { View.GONE }
-        textView?.setVisibility(vis)
-        if (icon == null) {
-            iconView?.visibility = View.GONE
-        } else {
-            iconView?.visibility = vis
-        }
+        val vis = if (updatePill) View.VISIBLE else View.GONE
+        textView.visibility = vis
+        iconView.visibility = if (icon == null) View.GONE else vis
         if (!updatePill) {
-            textView?.animate()?.cancel()
+            textView.animate().cancel()
             if (icon is AnimatedVectorDrawable) {
                 icon.reset()
             }
-            handler.post(wakeLock.wrap({}))
+            this@AmbientIndicationContainer.handler.post(wakeLock.wrap { })
         } else if (!textVisible) {
             wakeLock.acquire("AmbientIndication")
             if (icon is AnimatedVectorDrawable) {
                 icon.start()
             }
-            textView?.translationY = (textView?.height?.toFloat() ?: 0F) / 2F
-            textView?.alpha = 0.0f
-            textView?.animate()?.alpha(1.0f)?.translationY(0.0f)?.setStartDelay(150L)?.setDuration(100L)?.setListener(object: AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animator: Animator) {
-                    wakeLock.release("AmbientIndication")
-                    textView?.animate()?.setListener(null)
-                }
-            })?.setInterpolator(Interpolators.DECELERATE_QUINT)?.start()
+            textView.translationY = textView.height.toFloat() / 2F
+            textView.alpha = 0.0f
+            textView.animate()
+                .alpha(1.0f)
+                .translationY(0.0f)
+                .setStartDelay(150L)
+                .setDuration(100L)
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animator: Animator) {
+                        wakeLock.release("AmbientIndication")
+                        textView.animate().setListener(null)
+                    }
+                })
+                .setInterpolator(Interpolators.DECELERATE_QUINT)
+                .start()
         } else if (oldIndicationTextMode != this.indicationTextMode) {
             if (icon is AnimatedVectorDrawable) {
                 wakeLock.acquire("AmbientIndication")
@@ -206,7 +233,7 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
                 wakeLock.release("AmbientIndication")
             }
         } else {
-            handler.post(wakeLock.wrap({}))
+            this@AmbientIndicationContainer.handler.post(wakeLock.wrap { })
         }
         updateBottomSpacing()
     }
@@ -217,16 +244,24 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
             bottomMarginPx = marginBottom
             (layoutParams as FrameLayout.LayoutParams).bottomMargin = bottomMarginPx
         }
-        centralSurfaces.notificationPanelViewController.setAmbientIndicationTop(top, textView.visibility == View.VISIBLE)
+        centralSurfaces.notificationPanelViewController.setAmbientIndicationTop(
+            top,
+            textView.visibility == View.VISIBLE
+        )
     }
 
-    public fun hideAmbientMusic() {
+    fun hideAmbientMusic() {
         setAmbientMusic(null, null, null, false, 0, null)
     }
 
     fun onTextClick(view: View) {
         openIntent?.let {
-            centralSurfaces.wakeUpIfDozing(SystemClock.uptimeMillis(), view, "AMBIENT_MUSIC_CLICK", PowerManager.WAKE_REASON_GESTURE)
+            centralSurfaces.wakeUpIfDozing(
+                SystemClock.uptimeMillis(),
+                view,
+                "AMBIENT_MUSIC_CLICK",
+                PowerManager.WAKE_REASON_GESTURE
+            )
             if (ambientSkipUnlock) {
                 sendBroadcastWithoutDismissingKeyguard(it)
             } else {
@@ -237,7 +272,12 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
 
     fun onIconClick(view: View) {
         favoritingIntent?.let {
-            centralSurfaces.wakeUpIfDozing(SystemClock.uptimeMillis(), view, "AMBIENT_MUSIC_CLICK", PowerManager.WAKE_REASON_GESTURE)
+            centralSurfaces.wakeUpIfDozing(
+                SystemClock.uptimeMillis(),
+                view,
+                "AMBIENT_MUSIC_CLICK",
+                PowerManager.WAKE_REASON_GESTURE
+            )
             sendBroadcastWithoutDismissingKeyguard(it)
             return
         }
@@ -247,39 +287,36 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
     override fun onDozingChanged(isDozing: Boolean) {
         dozing = isDozing
         updateVisibility()
-        textView.let {
-            it.setEnabled(!isDozing)
-            updateColors()
-        }
+        textView.isEnabled = !isDozing
+        updateColors()
     }
 
-    override fun dozeTimeTick() = updatePill()
+    override fun dozeTimeTick() {
+        updatePill()
+    }
 
     fun updateColors() {
-        textColorAnimator?.let {
-            if (it.isRunning()) {
-                it.cancel()
-            }
-        }
+        textColorAnimator?.cancel()
         val defaultColor = textView.textColors.defaultColor
-        val dozeColor = if (dozing) { -1 } else { textColor }
+        val dozeColor = if (dozing) -1 else textColor
         if (dozeColor == defaultColor) {
             textView.setTextColor(dozeColor)
             iconView.imageTintList = ColorStateList.valueOf(dozeColor)
         }
-        textColorAnimator = ValueAnimator.ofArgb(defaultColor, dozeColor)
-        textColorAnimator!!.interpolator = Interpolators.LINEAR_OUT_SLOW_IN
-        textColorAnimator!!.duration = 500L
-        textColorAnimator!!.addUpdateListener({_ ->
-            textView.setTextColor(textColorAnimator!!.animatedValue as Int)
-            iconView.imageTintList = ColorStateList.valueOf(textColorAnimator!!.animatedValue as Int)
-        })
-        textColorAnimator!!.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animator: Animator) {
-                textColorAnimator = null
+        textColorAnimator = ValueAnimator.ofArgb(defaultColor, dozeColor).apply {
+            interpolator = Interpolators.LINEAR_OUT_SLOW_IN
+            duration = 500L
+            addUpdateListener { _ ->
+                textView.setTextColor(animatedValue as Int)
+                iconView.imageTintList = ColorStateList.valueOf(animatedValue as Int)
             }
-        })
-        textColorAnimator!!.start()
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animator: Animator) {
+                    textColorAnimator = null
+                }
+            })
+            start()
+        }
     }
 
     override fun onStateChanged(state: Int) {
@@ -288,22 +325,18 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
     }
 
     private fun sendBroadcastWithoutDismissingKeyguard(pendingIntent: PendingIntent) {
-        if (pendingIntent.isActivity()) {
+        if (pendingIntent.isActivity) {
             return
         }
         try {
             pendingIntent.send()
         } catch (e: PendingIntent.CanceledException) {
-            Log.w("AmbientIndication", "Sending intent failed: " + e)
+            Log.w("AmbientIndication", "Sending intent failed: $e")
         }
     }
 
     private fun updateVisibility() {
-        if (centralSurfacesState == 1) {
-            visibility = View.VISIBLE
-        } else {
-            visibility = View.INVISIBLE
-        }
+        visibility = if (centralSurfacesState == 1) View.VISIBLE else View.INVISIBLE
     }
 
     override fun onPrimaryMetadataOrStateChanged(mediaMetadata: MediaMetadata?, mediaState: Int) {
@@ -320,7 +353,7 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
         return NotificationMediaManager.isPlayingState(mediaPlaybackState)
     }
 
-    public fun setReverseChargingMessage(message: String) {
+    fun setReverseChargingMessage(message: String) {
         if (TextUtils.isEmpty(message) && reverseChargingMessage == message) {
             return
         }
