@@ -141,7 +141,7 @@ public class AdaptiveChargingManager {
             Log.d("AdaptiveChargingManager", "initHalInterface");
         }
         try {
-            IBinder binder = Binder.allowBlocking(ServiceManager.waitForDeclaredService("vendor.google.google_battery.IGoogleBattery/default"));
+            IBinder binder = ServiceManager.getService("vendor.google.google_battery.IGoogleBattery");
             IGoogleBattery batteryInterface = null;
             if (binder != null) {
                 batteryInterface = IGoogleBattery.Stub.asInterface(binder);
