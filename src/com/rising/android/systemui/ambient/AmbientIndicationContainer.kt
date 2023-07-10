@@ -10,7 +10,11 @@ import android.graphics.Rect
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.DrawableWrapper
+import android.media.AudioManager
 import android.media.MediaMetadata
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -66,6 +70,9 @@ class AmbientIndicationContainer(
     private var textColorAnimator: ValueAnimator? = null
     private lateinit var textView: TextView
     private var reverseChargingMessage: String = ""
+    
+    private lateinit var mAudioManager: AudioManager
+    private lateinit var mSessionManager: MediaSessionManager
 
     private val handler: Handler = Handler(Looper.getMainLooper())
 
@@ -142,6 +149,10 @@ class AmbientIndicationContainer(
     }
 
     private fun updatePill() {
+        if (isMediaPlaying()) {
+            hideAmbientMusic()
+            return;
+        }
         val oldIndicationTextMode = indicationTextMode
         var updatePill = true
         indicationTextMode = 1
@@ -334,15 +345,23 @@ class AmbientIndicationContainer(
     override fun onPrimaryMetadataOrStateChanged(mediaMetadata: MediaMetadata?, mediaState: Int) {
         if (mediaPlaybackState != mediaState) {
             mediaPlaybackState = mediaState
-            if (!isMediaPlaying()) {
-                return
-            }
-            hideAmbientMusic()
+            updatePill()
         }
     }
 
     private fun isMediaPlaying(): Boolean {
-        return NotificationMediaManager.isPlayingState(mediaPlaybackState)
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        val sessionManager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
+        if (sessionManager != null) {
+            val controllers: List<MediaController> = sessionManager.getActiveSessions(null)
+            for (controller in controllers) {
+                val state: PlaybackState? = controller.playbackState
+                if (state != null && state.state == PlaybackState.STATE_PLAYING) {
+                    return true
+                }
+            }
+        }
+        return audioManager?.isMusicActive == true
     }
 
     fun setReverseChargingMessage(message: String) {
