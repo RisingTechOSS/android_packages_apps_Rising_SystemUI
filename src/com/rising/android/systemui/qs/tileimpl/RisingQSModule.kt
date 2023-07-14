@@ -18,9 +18,7 @@ package com.rising.android.systemui.qs.tileimpl
 
 import com.android.systemui.qs.tileimpl.QSTileImpl
 
-import com.rising.android.systemui.qs.tiles.DataSwitchTile
 import com.rising.android.systemui.qs.tiles.PowerShareTile
-import com.rising.android.systemui.qs.tiles.SmartPixelsTile
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -29,21 +27,9 @@ import dagger.multibindings.StringKey
 @Module
 interface RisingQSModule {
 
-    /** Inject DataSwitchTile into tileMap in QSModule */
-    @Binds
-    @IntoMap
-    @StringKey(DataSwitchTile.TILE_SPEC)
-    fun bindDataSwitchTile(dataSwitchTile: DataSwitchTile): QSTileImpl<*>
-
     /** Inject PowerShareTile into tileMap in QSModule */
     @Binds
     @IntoMap
     @StringKey(PowerShareTile.TILE_SPEC)
     fun bindPowerShareTile(powerShareTile: PowerShareTile): QSTileImpl<*>
-
-    /** Inject SmartPixelsTile into tileMap in QSModule */
-    @Binds
-    @IntoMap
-    @StringKey(SmartPixelsTile.TILE_SPEC)
-    fun bindSmartPixelsTile(smartPixelsTile: SmartPixelsTile): QSTileImpl<*>
 }
