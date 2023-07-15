@@ -20,7 +20,6 @@ import com.android.systemui.statusbar.policy.FlashlightController;
 import com.rising.android.systemui.ambient.AmbientIndicationContainer;
 import com.rising.android.systemui.ambient.AmbientIndicationService;
 import com.rising.android.systemui.elmyra.ElmyraService;
-import com.rising.android.systemui.smartpixels.SmartPixelsReceiver;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -52,7 +51,6 @@ public class RisingServices extends VendorServices {
 
     @Override
     public void start() {
-        addService(new SmartPixelsReceiver(mContext));
         if (mContext.getPackageManager().hasSystemFeature("android.hardware.context_hub") && mContext.getPackageManager().hasSystemFeature("android.hardware.sensor.assist")) {
             addService(new ElmyraService(mContext, mAssistManager, mFlashlightController));
         }

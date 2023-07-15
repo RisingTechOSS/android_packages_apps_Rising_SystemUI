@@ -62,6 +62,8 @@ import dagger.Module
 import dagger.multibindings.ClassKey
 import dagger.multibindings.IntoMap
 
+import com.android.systemui.smartpixels.SmartPixelsReceiver
+
 /**
  * Collection of {@link CoreStartable}s that should be run on AOSP.
  */
@@ -298,4 +300,10 @@ abstract class SystemUIRisingCoreStartableModule {
     @IntoMap
     @ClassKey(DreamMonitor::class)
     abstract fun bindDreamMonitor(sysui: DreamMonitor): CoreStartable
+    
+    /** Inject into SmartPixelsReceiver.  */
+    @Binds
+    @IntoMap
+    @ClassKey(SmartPixelsReceiver::class)
+    abstract fun bindSmartPixelsReceiver(sysui: SmartPixelsReceiver): CoreStartable
 }
