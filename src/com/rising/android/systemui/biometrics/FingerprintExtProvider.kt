@@ -14,21 +14,19 @@ import javax.inject.Inject
 
 class FingerprintExtProvider @Inject constructor() {
     public fun getExtension(): IFingerprintExt? {
-        val binder: IBinder? = ServiceManager.waitForDeclaredService(FINGERPRINT_EXT_SERVICE)
-        if (binder == null) {
-            return null
-        }
-
         try {
-            val fingerprintExt = IFingerprintExt.Stub.asInterface(binder.getExtension())
+            val binder: IBinder? = ServiceManager.getService(FINGERPRINT_EXT_SERVICE)
+            if (binder == null) {
+                return null
+            }
+            val fingerprintExt = IFingerprintExt.Stub.asInterface(binder)
             return fingerprintExt
-        } catch (e: NullPointerException) {
+        } catch (e: Exception) {
             return null
         }
     }
 
     companion object {
-        const val FINGERPRINT_EXT_SERVICE: String = "android.hardware.biometrics.fingerprint.IFingerprint/default"
+        const val FINGERPRINT_EXT_SERVICE: String = "android.hardware.biometrics.fingerprint.IFingerprint"
     }
-
 }
